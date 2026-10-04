@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#06000e">
+<title>WINGO AI</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100dvh;overflow:hidden;font-family:-apple-system,sans-serif}
+:root{--bg:#06000e;--p:#b44fff;--p2:#ff3faa;--ok:#22c55e;--no:#ef4444;--warn:#f59e0b;--t1:#f0eaff;--t2:#c2b8d8;--t3:#7a6d95}
+body{background:var(--bg);color:var(--t1);display:flex;justify-content:center}
+.shell{width:100%;max-width:430px;height:100dvh;display:flex;flex-direction:column;background:linear-gradient(180deg,#0a0014,#06000c);overflow:hidden}
+header{padding:14px;border-bottom:1px solid rgba(160,0,160,.25);display:flex;align-items:center;justify-content:space-between;background:rgba(8,0,16,.97)}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.hdr-avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1a0000,#3a0010);border:2px solid rgba(200,20,20,.8);display:flex;align-items:center;justify-content:center;font-size:22px}
+.hdr-name{font-size:14px;font-weight:900;letter-spacing:1px}
+.hdr-sub{font-size:10px;color:rgba(230,60,60,.9);margin-top:2px}
+.ca{flex:1;overflow-y:auto;padding:12px 12px 90px;scrollbar-width:none}
+.ca::-webkit-scrollbar{display:none}
+.hidden{display:none!important}
+.card{background:linear-gradient(145deg,rgba(22,8,38,.92),rgba(10,4,20,.95));border:1px solid rgba(140,40,200,.2);border-radius:18px;padding:16px;margin-bottom:12px}
+.pred-card{background:linear-gradient(160deg,rgba(14,5,26,.98),rgba(8,2,16,.98));border:1.5px solid rgba(180,0,180,.3);border-radius:18px;padding:16px;margin-bottom:12px;text-align:center}
+.lvl-row{display:flex;justify-content:center;gap:6px;margin-bottom:12px}
+.lvl-tab{padding:5px 11px;border-radius:20px;font-size:10px;font-weight:700;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.35)}
+.lvl-tab.active{background:linear-gradient(135deg,rgba(140,0,255,.35),rgba(80,0,180,.25));border-color:rgba(180,60,255,.55);color:#e0b8ff}
+.lvl-badge{padding:9px 14px;border-radius:30px;background:linear-gradient(135deg,rgba(60,0,100,.75),rgba(30,0,60,.65));border:1px solid rgba(160,60,255,.38);font-size:11px;font-weight:800;color:#d0a8ff;margin-bottom:12px}
+.pred-num{font-size:100px;font-weight:900;color:#d4a8ff;text-shadow:0 0 30px rgba(180,80,255,.9),0 0 60px rgba(140,0,255,.5);line-height:1;padding:16px 0}
+.pred-conf{font-size:13px;color:var(--t2);margin-bottom:12px}
+.pred-conf span{color:#fff;font-weight:800}
+.size-badge{display:inline-block;padding:10px 20px;border-radius:10px;background:linear-gradient(135deg,rgba(50,0,10,.75),rgba(30,0,8,.7));border:1.5px solid rgba(200,30,30,.65);font-size:13px;font-weight:900;color:#ff8888}
+.size-badge.big{border-color:rgba(140,60,255,.55);color:#c8a0ff;background:linear-gradient(135deg,rgba(30,0,55,.75),rgba(18,0,35,.7))}
+.size-badge.skip{border-color:rgba(245,158,11,.65);color:#fbbf24;background:linear-gradient(135deg,rgba(50,30,0,.75),rgba(30,18,0,.7))}
+.btn{width:100%;padding:16px;border-radius:14px;border:none;background:linear-gradient(135deg,#8800ff,#cc00cc,#ff00aa);font-size:13px;font-weight:900;color:#fff;margin-bottom:10px;cursor:pointer;text-transform:uppercase}
+.btn-copy{background:linear-gradient(135deg,rgba(80,0,160,.65),rgba(50,0,100,.55));border:1.5px solid rgba(140,60,255,.4);color:#c8a0ff;font-size:12px}
+.algo-hdr{font-size:10px;font-weight:800;letter-spacing:1.5px;color:rgba(220,50,50,.75);margin-bottom:10px;text-transform:uppercase;border-bottom:1px solid rgba(150,0,200,.15);padding-bottom:8px}
+.algo-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px}
+.algo-row:last-child{border:none}
+.algo-key{color:var(--t2)}
+.algo-val{font-weight:800;color:#c0a0ff}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat-box{background:linear-gradient(145deg,rgba(18,6,34,.9),rgba(10,3,20,.88));border:1px solid rgba(140,40,200,.18);border-radius:14px;padding:12px;display:flex;align-items:center;gap:10px}
+.stat-icon{width:32px;height:32px;border-radius:8px;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:16px}
+.stat-val{font-size:16px;font-weight:800}
+.stat-lbl{font-size:9px;color:var(--t3);text-transform:uppercase;margin-top:2px}
+.sec-title{font-size:10px;font-weight:800;color:var(--t2);margin:12px 0 8px;letter-spacing:1.2px;text-transform:uppercase}
+.hist-item{display:flex;align-items:center;padding:10px 12px;background:linear-gradient(145deg,rgba(20,7,36,.95),rgba(10,3,18,.95));border:1px solid rgba(140,40,200,.18);border-radius:14px;margin-bottom:8px;gap:8px;border-left:3px solid var(--t3)}
+.hist-item.win{border-left-color:var(--ok)}
+.hist-item.loss{border-left-color:var(--no)}
+.hist-item.jackpot{border-left-color:#ffd76a}
+.hist-item.skip{border-left-color:var(--warn)}
+.hist-period{font-size:11px;font-weight:800;flex:1}
+.hist-pred{font-size:10px;padding:5px 10px;border-radius:999px;background:rgba(140,60,255,.15);color:#d0b0ff;font-weight:800}
+.hist-result{font-size:11px;padding:5px 10px;border-radius:999px;font-weight:900}
+.hist-result.win{color:var(--ok);background:rgba(65,239,174,.1);border:1px solid rgba(65,239,174,.3)}
+.hist-result.loss{color:var(--no);background:rgba(255,91,138,.1);border:1px solid rgba(255,91,138,.3)}
+.hist-result.skip{color:var(--warn);background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3)}
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:70px;background:rgba(8,0,16,.98);border-top:1px solid rgba(180,0,180,.2);display:flex;justify-content:space-around;align-items:center;z-index:100}
+.tb{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--t3);font-size:9px;font-weight:700;cursor:pointer;padding:4px 8px}
+.tb.on{color:var(--p)}
+.tb .icon{font-size:20px}
+.tb.predict .circle{width:40px;height:40px;border-radius:50%;background:linear-gradient(145deg,#aa0000,#660000);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:2px}
+.tb.predict.on .circle{background:linear-gradient(145deg,#cc0000,#990000);box-shadow:0 0 20px rgba(255,30,30,.6)}
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:rgba(12,3,24,.95);border:1px solid rgba(140,40,200,.3);padding:10px 18px;border-radius:50px;font-size:12px;font-weight:700;z-index:9000;white-space:nowrap;display:none}
+.blank{text-align:center;padding:30px 16px;color:var(--t3);font-size:12px}
+.loading{position:fixed;inset:0;z-index:9999;background:#030208;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ld-title{font-size:22px;font-weight:900;background:linear-gradient(115deg,#ff60cc,#c040ff,#8040ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.ld-sub{font-size:10px;color:rgba(180,140,220,.6);letter-spacing:3px;text-transform:uppercase;margin-bottom:30px}
+.ld-bar{width:200px;height:5px;background:rgba(255,255,255,.08);border-radius:5px;overflow:hidden}
+.ld-fill{height:100%;background:linear-gradient(90deg,#c040ff,#ff40c0,#8040ff);width:0%;transition:width .3s}
+</style>
+</head>
+<body>
+<div class="loading" id="loader">
+  <div class="ld-title">WINGO AI</div>
+  <div class="ld-sub">SIGNAL ENGINE V9</div>
+  <div class="ld-bar"><div class="ld-fill" id="ldFill"></div></div>
+</div>
+
+<div class="shell" id="app" style="display:none">
+  <header>
+    <div class="hdr-left">
+      <div class="hdr-avatar">🔥</div>
+      <div>
+        <div class="hdr-name">WINGO AI ⚡</div>
+        <div class="hdr-sub">● WINGO 1MIN • LIVE</div>
+      </div>
+    </div>
+  </header>
+
+  <div id="v-home" class="ca hidden">
+    <div class="card" style="text-align:center;padding:30px 16px">
+      <div style="font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:12px">LIVE SIGNAL</div>
+      <div id="homeResult" style="font-size:50px;font-weight:900;background:linear-gradient(115deg,#d8a0ff,#a050ff,#ff60c8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">-</div>
+      <div id="homePeriod" style="font-size:11px;color:var(--t3);margin-top:8px">WAITING...</div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-icon">📊</div><div><div class="stat-val" id="sWinRate">—</div><div class="stat-lbl">Win Rate</div></div></div>
+      <div class="stat-box"><div class="stat-icon">🔥</div><div><div class="stat-val" id="sStreak">—</div><div class="stat-lbl">Streak</div></div></div>
+      <div class="stat-box"><div class="stat-icon">✅</div><div><div class="stat-val" id="sWins">0</div><div class="stat-lbl">Wins</div></div></div>
+      <div class="stat-box"><div class="stat-icon">❌</div><div><div class="stat-val" id="sLosses">0</div><div class="stat-lbl">Losses</div></div></div>
+    </div>
+  </div>
+
+  <div id="v-game" class="ca">
+    <div class="pred-card">
+      <div class="lvl-row">
+        <div class="lvl-tab active" id="lvl1">LVL 1</div>
+        <div class="lvl-tab" id="lvl2">LVL 2</div>
+        <div class="lvl-tab" id="lvl3">LVL 3</div>
+      </div>
+      <div class="lvl-badge" id="lvlBadge">🎯 LEVEL 1 — DIRECT SIGNAL</div>
+      <div class="pred-num" id="predBigNum">-</div>
+      <div class="pred-conf">Confidence: <span id="predConfPct">0%</span></div>
+      <div class="size-badge" id="sizeBadge">WAITING...</div>
+    </div>
+    <button class="btn" id="btnConfirm">⚡ LEVEL 1 — DIRECT SIGNAL</button>
+    <button class="btn btn-copy" onclick="copyPred()">📋 COPY PREDICTION</button>
+    <div class="card">
+      <div class="algo-hdr">⚡ LIVE ALGORITHM METRICS</div>
+      <div class="algo-row"><span class="algo-key">Engine</span><span class="algo-val" id="alEngine">MASTERMIND v9</span></div>
+      <div class="algo-row"><span class="algo-key">Matched Pattern</span><span class="algo-val" id="alPattern">—</span></div>
+      <div class="algo-row"><span class="algo-key">Hit Rate</span><span class="algo-val" id="alHitRate">—</span></div>
+      <div class="algo-row"><span class="algo-key">Next Period</span><span class="algo-val" id="alNext">—</span></div>
+      <div class="algo-row"><span class="algo-key">Primary Number</span><span class="algo-val" id="alPrimary">—</span></div>
+      <div class="algo-row"><span class="algo-key">Max Pattern Depth</span><span class="algo-val" id="alMaxOrder">—</span></div>
+      <div class="algo-row"><span class="algo-key">Recovery Mode</span><span class="algo-val" id="alRecovery">STANDBY</span></div>
+    </div>
+  </div>
+
+  <div id="v-hist" class="ca hidden">
+    <div class="sec-title">📜 PREDICTION HISTORY</div>
+    <div id="histList"><div class="blank">No predictions yet</div></div>
+  </div>
+
+  <div id="v-wl" class="ca hidden">
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-icon">✅</div><div><div class="stat-val" id="wlW">0</div><div class="stat-lbl">Total Wins</div></div></div>
+      <div class="stat-box"><div class="stat-icon">❌</div><div><div class="stat-val" id="wlL">0</div><div class="stat-lbl">Total Losses</div></div></div>
+      <div class="stat-box"><div class="stat-icon">📊</div><div><div class="stat-val" id="wlWR">—</div><div class="stat-lbl">Win Rate</div></div></div>
+      <div class="stat-box"><div class="stat-icon">🏆</div><div><div class="stat-val" id="wlBS">0</div><div class="stat-lbl">Best Streak</div></div></div>
+    </div>
+    <div class="sec-title">RECENT W/L</div>
+    <div id="wlList"><div class="blank">No records yet</div></div>
+  </div>
+
+  <nav class="tab-bar">
+    <button class="tb" data-tab="home"><div class="icon">🏠</div>HOME</button>
+    <button class="tb predict on" data-tab="game"><div class="circle">⚡</div>PREDICT</button>
+    <button class="tb" data-tab="hist"><div class="icon">📜</div>HISTORY</button>
+    <button class="tb" data-tab="wl"><div class="icon">📈</div>W/L</button>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+  const API = "https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json";
+  const MAX_ORDER = 10;
+  const BUCKET_SIZE = 1000;
+  const MIN_CONFIDENCE = 53;
+
+  let ST = {last:null, buf:[], pred:null, hist:[], w:0, l:0, s:0, streak:0, best:0};
+
+  try {
+    var saved = localStorage.getItem('wingo_memory_v3');
+    if(saved){
+      var parsed = JSON.parse(saved);
+      if(parsed && parsed.rounds && parsed.rounds.length > 0){
+        ST.buf = parsed.rounds;
+        ST.last = parsed.last || null;
+        ST.w = parsed.w || 0;
+        ST.l = parsed.l || 0;
+        ST.s = parsed.s || 0;
+        ST.streak = parsed.streak || 0;
+        ST.best = parsed.best || 0;
+        ST.hist = parsed.hist || [];
+      }
+    }
+  } catch(e){}
+
+
+// ── Auto-load historical rounds from wingo_data.json ──
+(async function loadHistorical(){
+  try {
+    var resp = await fetch('wingo_data.json?t=' + Date.now());
+    if(!resp.ok) { console.log('No wingo_data.json found'); return; }
+    var data = await resp.json();
+    if(!data || !data.rounds || data.rounds.length === 0) return;
+    var historical = data.rounds.slice();
+    var existing = ST.buf.slice();
+    var combined = historical.concat(existing);
+    if(combined.length > BUCKET_SIZE) combined = combined.slice(-BUCKET_SIZE);
+    ST.buf = combined;
+    if(data.state && data.state.last && !ST.last) ST.last = data.state.last;
+    toast('📚 Loaded ' + historical.length + ' historical rounds');
+    console.log('Loaded', historical.length, 'historical rounds');
+    ST.pred = predict(ST.buf);
+    if(typeof renderPred === 'function') renderPred();
+    if(typeof updateDashStats === 'function') updateDashStats();
+  } catch(e){
+    console.log('Historical load skipped:', e.message);
+  }
+})();
+
+
+  function saveState(){
+    try {
+      localStorage.setItem('wingo_memory_v3', JSON.stringify({
+        rounds: ST.buf.slice(-BUCKET_SIZE),
+        last: ST.last,
+        w: ST.w, l: ST.l, s: ST.s, streak: ST.streak, best: ST.best,
+        hist: ST.hist.slice(-200)
+      }));
+    } catch(e){}
+  }
+  setInterval(saveState, 3000);
+
+  let level = 1;
+
+  const $ = id => document.getElementById(id);
+  function toast(msg){
+    const t = $('toast'); t.textContent = msg; t.style.display = 'block';
+    clearTimeout(t._t); t._t = setTimeout(()=>{t.style.display='none'}, 2200);
+  }
+  function setLevel(l){
+    level = l;
+    ['lvl1','lvl2','lvl3'].forEach((id,i)=>$(id).classList.toggle('active', i+1 === l));
+    const badges = {1:'🎯 LEVEL 1 — DIRECT SIGNAL',2:'🔥 LEVEL 2 — SURE WIN RECOVERY',3:'💀 LEVEL 3 — JACKPOT CONFIRM'};
+    const btns = {1:'⚡ LEVEL 1 — DIRECT SIGNAL',2:'🔥 LEVEL 2 — RECOVERY MODE',3:'💀 LEVEL 3 — JACKPOT CONFIRM 🎯'};
+    $('lvlBadge').textContent = badges[l];
+    $('btnConfirm').textContent = btns[l];
+    $('alRecovery').textContent = l===3?'JACKPOT MODE 💀':l===2?'RECOVERY ACTIVE 🔥':'STANDBY';
+  }
+  ['lvl1','lvl2','lvl3'].forEach((id,i)=>$(id).onclick = ()=>setLevel(i+1));
+
+  document.querySelectorAll('.tb').forEach(b=>{
+    b.onclick = ()=>{
+      document.querySelectorAll('.tb').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      ['home','game','hist','wl'].forEach(v=>$('v-'+v).classList.add('hidden'));
+      $('v-'+b.dataset.tab).classList.remove('hidden');
+      if (b.dataset.tab === 'hist') renderHist();
+      if (b.dataset.tab === 'wl') renderWL();
+    };
+  });
+
+  // ============================================
+  // DEEP PATTERN ENGINE — order 1..10 with Bayesian smoothing
+  // ============================================
+  function bayesianRate(successes, total, alpha, beta){
+    if(alpha === undefined) alpha = 1;
+    if(beta === undefined) beta = 1;
+    return (successes + alpha) / (total + alpha + beta);
+  }
+
+  function deepMarkov(seq, maxOrder){
+    var signals = [];
+    var minSamples = 3;
+    for(var order = 1; order <= maxOrder; order++){
+      if(seq.length < order + 5) continue;
+      var counts = {};
+      for(var i = order; i < seq.length; i++){
+        var key = seq.slice(i - order, i).join('');
+        var outcome = seq[i];
+        if(!counts[key]) counts[key] = { S: 0, B: 0 };
+        counts[key][outcome]++;
+      }
+      var currentKey = seq.slice(-order).join('');
+      var c = counts[currentKey];
+      if(!c) continue;
+      var total = c.S + c.B;
+      if(total < minSamples) continue;
+      var pS = bayesianRate(c.S, total);
+      var pB = bayesianRate(c.B, total);
+      var recencyBoost = 1;
+      for(var j = seq.length - 1; j >= order; j--){
+        var pastKey = seq.slice(j - order, j).join('');
+        if(pastKey === currentKey){
+          if(seq.length - j < 50) recencyBoost += 0.1;
+        }
+      }
+      var sampleConf = Math.min(1, total / 15);
+      var bias = Math.abs(pS - 0.5) * 2;
+      var weight = order * sampleConf * (0.5 + bias) * recencyBoost;
+      signals.push({ order: order, key: currentKey, pS: pS, pB: pB, samples: total, weight: weight });
+    }
+    return signals;
+  }
+
+  function rollingFrequency(seq, windowSize){
+    if(seq.length < windowSize) windowSize = seq.length;
+    var recent = seq.slice(-windowSize);
+    var sm = 0;
+    for(var i = 0; i < recent.length; i++) if(recent[i] === 'S') sm++;
+    return { S: bayesianRate(sm, recent.length), B: bayesianRate(recent.length - sm, recent.length), samples: recent.length };
+  }
+
+  function exponentialFrequency(seq, halfLife){
+    var totalW = 0, sumS = 0;
+    for(var i = 0; i < seq.length; i++){
+      var w = Math.pow(0.5, (seq.length - 1 - i) / halfLife);
+      totalW += w;
+      if(seq[i] === 'S') sumS += w;
+    }
+    if(totalW === 0) return null;
+    return { S: sumS / totalW, B: 1 - sumS / totalW };
+  }
+  function predict(nums){
+  if(!nums || nums.length < 5){
+    return {prediction:'S', confidence:50, numbers:[2,3], primaryNumber:2, engine:'WARMUP', matchedPattern:'-', patternSamples:0, patternHitRate:0, maxOrder:0};
+  }
+  var seq = nums.map(function(n){ return n <= 4 ? 'S' : 'B'; });
+
+  var markov = deepMarkov(seq, MAX_ORDER);
+  var freqShort = rollingFrequency(seq, 30);
+  var freqMid   = rollingFrequency(seq, 100);
+  var freqLong  = rollingFrequency(seq, 300);
+  var expFreq = exponentialFrequency(seq, 20);
+
+  var curSide = seq[seq.length - 1];
+  var streakLen = 1;
+  for(var s = seq.length - 2; s >= 0; s--){
+    if(seq[s] === curSide) streakLen++;
+    else break;
+  }
+  var streakSignal = null;
+  if(streakLen >= 5){
+    var flipConf = Math.min(50 + (streakLen - 5) * 6, 75);
+    streakSignal = {
+      prediction: curSide === 'B' ? 'S' : 'B',
+      confidence: flipConf,
+      streak: streakLen,
+      weight: streakLen * 0.5
+    };
+  }
+
+  var totalWeight = 0, sumWS = 0, sumWB = 0;
+  var bestSignal = null;
+
+  markov.forEach(function(m){
+    totalWeight += m.weight;
+    sumWS += m.weight * m.pS;
+    sumWB += m.weight * m.pB;
+    if(!bestSignal || m.weight > bestSignal.weight){
+      bestSignal = { type:'markov', order:m.order, key:m.key, samples:m.samples, weight:m.weight, pS:m.pS, pB:m.pB };
+    }
+  });
+
+  var freqW = 2;
+  totalWeight += freqW * 3;
+  sumWS += freqW * (freqShort.S + freqMid.S + freqLong.S);
+  sumWB += freqW * (freqShort.B + freqMid.B + freqLong.B);
+
+  if(expFreq){
+    totalWeight += 3;
+    sumWS += 3 * expFreq.S;
+    sumWB += 3 * expFreq.B;
+  }
+
+  if(streakSignal){
+    totalWeight += streakSignal.weight;
+    if(streakSignal.prediction === 'S') sumWS += streakSignal.weight * 1;
+    else sumWB += streakSignal.weight * 1;
+  }
+
+  if(totalWeight === 0){
+    return {prediction:'S', confidence:50, numbers:[2,3], primaryNumber:2, engine:'WARMUP', matchedPattern:'-', patternSamples:0, patternHitRate:0, maxOrder:0};
+  }
+
+  var pS = sumWS / totalWeight;
+  var pB = sumWB / totalWeight;
+
+  var direction = pS > pB ? 'S' : 'B';
+  var p = direction === 'S' ? pS : pB;
+  var confidence = Math.round(p * 100);
+
+  var numberScores = [0,0,0,0,0,0,0,0,0,0];
+  var recentNums = nums.slice(-100);
+  recentNums.forEach(function(n, i){
+    var w = Math.pow(0.9, recentNums.length - 1 - i);
+    if(n >= 0 && n <= 9){
+      numberScores[n] += w * 2;
+      if(n > 0) numberScores[n-1] += w * 0.3;
+      if(n < 9) numberScores[n+1] += w * 0.3;
+    }
+  });
+
+  var side = direction === 'S' ? [0,1,2,3,4] : [5,6,7,8,9];
+  var ranked = side.map(function(n){ return { n: n, score: numberScores[n] }; }).sort(function(a,b){ return b.score - a.score; });
+  var primary = ranked[0].n;
+  var second = ranked[1] ? ranked[1].n : primary;
+
+  var engineName = bestSignal ? ('DEEP-MARKOV (order ' + bestSignal.order + ')') : 'FREQ-MIX';
+  if(streakSignal) engineName += ' + STREAK';
+
+  return {
+    prediction: direction,
+    confidence: confidence,
+    numbers: [primary, second],
+    primaryNumber: primary,
+    engine: engineName,
+    matchedPattern: bestSignal ? bestSignal.key : '-',
+    patternSamples: bestSignal ? bestSignal.samples : 0,
+    patternHitRate: confidence,
+    maxOrder: bestSignal ? bestSignal.order : 0
+  };
+}
+
+function renderPred(){
+  const p = ST.pred; if(!p) return;
+  $('predBigNum').textContent = p.primaryNumber;
+  $('predConfPct').textContent = Math.round(p.confidence) + '%';
+  const sb = $('sizeBadge');
+  const isSkip = p.confidence < MIN_CONFIDENCE && p.engine !== 'WARMUP';
+  if(isSkip){
+    sb.textContent = '🚫 SKIP — LOW CONFIDENCE';
+    sb.classList.add('skip');
+    sb.classList.remove('big');
+  } else if(p.prediction==='S'){
+    sb.textContent = 'SMALL (0-4)';
+    sb.classList.remove('big','skip');
+  } else {
+    sb.textContent = 'BIG (5-9)';
+    sb.classList.add('big');
+    sb.classList.remove('skip');
+  }
+  $('alEngine').textContent = p.engine;
+  if($('alPattern')) $('alPattern').textContent = p.matchedPattern || '—';
+  if($('alHitRate')) $('alHitRate').textContent = p.patternHitRate ? (p.patternHitRate + '% on ' + p.patternSamples) : '—';
+  if($('alPrimary')) $('alPrimary').textContent = p.primaryNumber;
+  if($('alMaxOrder')) $('alMaxOrder').textContent = p.maxOrder ? ('order ' + p.maxOrder) : '—';
+  if(ST.last) try { $('alNext').textContent = (BigInt(ST.last)+1n).toString().slice(-6); } catch(e){}
+  $('homeResult').textContent = p.prediction==='S'?'SMALL':'BIG';
+  $('homePeriod').textContent = ST.last ? 'PERIOD: ' + (BigInt(ST.last)+1n).toString().slice(-6) : 'WAITING...';
+}
+
+window.copyPred = function(){
+  if(!ST.pred){ toast('No prediction yet'); return; }
+  const txt = `🎯 WINGO AI v3\nLevel ${level}\nSize: ${ST.pred.prediction==='S'?'SMALL':'BIG'}\nNumber: ${ST.pred.primaryNumber}\nConfidence: ${Math.round(ST.pred.confidence)}%\nEngine: ${ST.pred.engine}\nPeriod: ${ST.last}`;
+  if(navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>toast('✅ Copied'));
+  else { const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('✅ Copied'); }
+};
+
+function renderHist(){
+  const el = $('histList');
+  if(ST.hist.length===0){ el.innerHTML='<div class="blank">No predictions yet</div>'; return; }
+  el.innerHTML = ST.hist.slice(-30).reverse().map(h=>{
+    const cls = h.status==='JACKPOT'?'jackpot':h.status==='SKIP'?'skip':h.won?'win':'loss';
+    return `<div class="hist-item ${cls}">
+      <div class="hist-period">#${String(h.issue).slice(-4)}</div>
+      <div class="hist-pred">${h.pred==='S'?'SMALL':'BIG'}</div>
+      <div class="hist-result ${cls}">${h.status||h.result}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderWL(){
+  $('wlW').textContent = ST.w;
+  $('wlL').textContent = ST.l;
+  const total = ST.w+ST.l;
+  $('wlWR').textContent = total ? Math.round(ST.w/total*100)+'%' : '—';
+  $('wlBS').textContent = ST.best;
+  const el = $('wlList');
+  if(ST.hist.length===0){ el.innerHTML='<div class="blank">No records yet</div>'; return; }
+  el.innerHTML = ST.hist.slice(-20).reverse().map(h=>
+    `<div class="hist-item ${h.won?'win':'loss'}">
+      <div class="hist-period">#${String(h.issue).slice(-4)}</div>
+      <div class="hist-pred">${h.pred==='S'?'S':'B'} → ${h.result}</div>
+      <div class="hist-result ${h.won?'win':'loss'}">${h.won?'WIN':'LOSS'}</div>
+    </div>`
+  ).join('');
+}
+
+function updateDashStats(){
+  const total = ST.w+ST.l;
+  $('sWinRate').textContent = total ? Math.round(ST.w/total*100)+'%' : '—';
+  $('sStreak').textContent = ST.streak>0 ? '🔥'+ST.streak : '—';
+  $('sWins').textContent = ST.w;
+  $('sLosses').textContent = ST.l;
+}
+  async function fetchResults(){
+    const url = API + '?ts=' + Date.now();
+    const proxies = [
+      'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+      'https://corsproxy.io/?' + encodeURIComponent(url)
+    ];
+    try { const r = await fetch(url); const d = await r.json(); if(d&&d.data&&d.data.list&&d.data.list.length) return d.data.list; } catch(e){}
+    for(const p of proxies){
+      try { const r = await fetch(p); const d = await r.json(); if(d&&d.data&&d.data.list&&d.data.list.length) return d.data.list; } catch(e){}
+    }
+    return null;
+  }
+
+  let busy = false;
+  async function loop(){
+    if(busy) return; busy = true;
+    try {
+      var list = await fetchResults();
+      if(!list || !list.length){ busy=false; return; }
+      var latest = list[0];
+      var topIssue = latest.issueNumber || latest.issue_number;
+      var topNum = parseInt(latest.number || latest.result_number || 0);
+      if(!topIssue || isNaN(topNum)){ busy=false; return; }
+
+      if(!ST.last){
+  if(ST.buf.length === 0){
+    ST.buf = list.slice(0,9).reverse().map(function(r){ return parseInt(r.number||r.result_number||0); }).filter(function(n){ return !isNaN(n); });
+  }
+  ST.last = topIssue;
+  ST.pred = predict(ST.buf);
+  renderPred(); updateDashStats();
+  busy=false; return;
+}
+
+      var newRounds = [];
+      for(var i = list.length - 1; i >= 0; i--){
+        var it = list[i];
+        var iss = it.issueNumber || it.issue_number;
+        if(!iss) continue;
+        var isNew = false;
+        try { isNew = BigInt(iss) > BigInt(ST.last); } catch(e){ isNew = (iss !== ST.last); }
+        if(isNew){
+          var num = parseInt(it.number || it.result_number || 0);
+          if(!isNaN(num)) newRounds.push({ issue: iss, num: num });
+        }
+      }
+
+      for(var k = 0; k < newRounds.length; k++){
+        var nr = newRounds[k];
+        if(ST.pred){
+          var isSkip = ST.pred.confidence < MIN_CONFIDENCE && ST.pred.engine !== 'WARMUP';
+          var actual = nr.num <= 4 ? 'S' : 'B';
+          var won = ST.pred.prediction === actual;
+          var jackpot = ST.pred.primaryNumber === nr.num;
+          var status = isSkip ? 'SKIP' : (jackpot ? 'JACKPOT' : won ? 'WIN' : 'LOSS');
+          ST.hist.push({ issue: nr.issue, result: nr.num, pred: ST.pred.prediction, won: won, status: status });
+          if(!isSkip){
+            if(won){ ST.w++; ST.streak++; if(ST.streak > ST.best) ST.best = ST.streak; setLevel(1); }
+            else { ST.l++; ST.streak = 0; setLevel(Math.min(level+1,3)); }
+          }
+        }
+        ST.buf.push(nr.num);
+        if(ST.buf.length > BUCKET_SIZE) ST.buf.shift();
+        ST.last = nr.issue;
+        ST.pred = predict(ST.buf);
+      }
+
+      if(newRounds.length > 0){
+        renderPred();
+        updateDashStats();
+        if(newRounds.length > 1) toast('Caught up: ' + newRounds.length + ' rounds');
+      }
+    } catch(e){ console.error('LOOP ERR:', e.message); }
+    busy = false;
+  }
+
+  let p = 0;
+  const li = setInterval(()=>{
+    p += 6 + Math.random()*8;
+    if(p >= 100){
+      p = 100; clearInterval(li);
+      $('loader').style.display = 'none';
+      $('app').style.display = 'flex';
+      loop(); setInterval(loop, 3000);
+    }
+    $('ldFill').style.width = Math.min(p,100) + '%';
+  }, 120);
+
+  if (ST.buf && ST.buf.length >= 3) {
+    ST.pred = predict(ST.buf);
+    renderPred();
+    updateDashStats();
+  }
+
+  setLevel(1);
+})();
+</script>
+</body>
+</html>
