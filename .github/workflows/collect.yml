@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -21,10 +23,6 @@ jobs:
 
       - name: Run collector
         run: node collect.js
-
-      - name: Show file diff
-        run: |
-          git diff --stat
 
       - name: Commit changes
         run: |
@@ -35,6 +33,7 @@ jobs:
             echo "⚠ No changes to commit"
           else
             git commit -m "Update rounds [skip ci]"
+            git pull --rebase origin main
             git push
-            echo "✓ Committed and pushed"
+            echo "✓ Pushed successfully"
           fi
