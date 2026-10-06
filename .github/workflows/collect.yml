@@ -13,18 +13,21 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
+      - name: Sync with remote
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+
       - name: Run collector
         run: node collect.js
 
-      - name: Commit changes
+      - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -33,7 +36,6 @@ jobs:
             echo "⚠ No changes to commit"
           else
             git commit -m "Update rounds [skip ci]"
-            git pull --rebase origin main
-            git push
+            git push origin main
             echo "✓ Pushed successfully"
           fi
