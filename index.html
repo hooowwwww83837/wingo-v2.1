@@ -456,20 +456,28 @@ function renderHist(){
 }
 
 function renderWL(){
-  $('wlW').textContent = ST.w;
-  $('wlL').textContent = ST.l;
-  const total = ST.w+ST.l;
-  $('wlWR').textContent = total ? Math.round(ST.w/total*100)+'%' : '—';
+  var wins = 0, losses = 0, skips = 0;
+  ST.hist.forEach(function(h){
+    if(h.status === 'SKIP') skips++;
+    else if(h.won) wins++;
+    else losses++;
+  });
+  var total = wins + losses;
+  $('wlW').textContent = wins;
+  $('wlL').textContent = losses;
+  $('wlWR').textContent = total ? Math.round(wins/total*100)+'%' : '—';
   $('wlBS').textContent = ST.best;
-  const el = $('wlList');
+  var el = $('wlList');
   if(ST.hist.length===0){ el.innerHTML='<div class="blank">No records yet</div>'; return; }
-  el.innerHTML = ST.hist.slice(-20).reverse().map(h=>
-    `<div class="hist-item ${h.won?'win':'loss'}">
-      <div class="hist-period">#${String(h.issue).slice(-4)}</div>
-      <div class="hist-pred">${h.pred==='S'?'S':'B'} → ${h.result}</div>
-      <div class="hist-result ${h.won?'win':'loss'}">${h.won?'WIN':'LOSS'}</div>
-    </div>`
-  ).join('');
+  el.innerHTML = ST.hist.slice(-20).reverse().map(function(h){
+    var cls = h.status === 'SKIP' ? 'skip' : (h.won ? 'win' : 'loss');
+    var label = h.status === 'SKIP' ? 'SKIP' : (h.won ? 'WIN' : 'LOSS');
+    return '<div class="hist-item ' + cls + '">' +
+      '<div class="hist-period">#' + String(h.issue).slice(-4) + '</div>' +
+      '<div class="hist-pred">' + (h.pred==='S'?'S':'B') + ' → ' + h.result + '</div>' +
+      '<div class="hist-result ' + cls + '">' + label + '</div>' +
+    '</div>';
+  }).join('');
 }
 
 function updateDashStats(){
